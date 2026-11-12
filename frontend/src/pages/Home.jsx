@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useLanguage } from '../context/LanguageContext'
 import HumanModel3D from '../components/HumanModel3D'
 
 const fadeUp = {
@@ -12,14 +13,74 @@ const stagger = {
     show: { transition: { staggerChildren: 0.15 } }
 }
 
-const statsData = [
-    { value: '1000+', label: 'Children Images Tested for Model', icon: '👶', color: '#00f5a0' },
-    { value: '97%', label: 'Model Accuracy', icon: '🎯', color: '#00c3e3' },
-    { value: 'Real-time', label: 'Analysis Engine', icon: '⚡', color: '#7c3aed' },
-    { value: '3-in-1', label: 'BMI + AI + PDF Report', icon: '📊', color: '#fbbf24' },
+const staticStatsData = [
+    { value: '1000+', label: { en: 'Children Images Tested for Model', hi: 'मॉडल के लिए परीक्षण किई गई बाल छवियां', mr: 'मॉडलसाठी तपासलेल्या बाल प्रतिमा' }, icon: '👶', color: '#00f5a0' },
+    { value: '97%', label: { en: 'Model Accuracy', hi: 'मॉडल सटीकता', mr: 'मॉडल अचूकता' }, icon: '🎯', color: '#00c3e3' },
+    { value: 'Real-time', label: { en: 'Analysis Engine', hi: 'विश्लेषण इंजन', mr: 'विश्लेषण इंजिन' }, icon: '⚡', color: '#7c3aed' },
+    { value: '3-in-1', label: { en: 'BMI + AI + PDF Report', hi: 'BMI + AI + PDF रिपोर्ट', mr: 'BMI + AI + PDF अहवाल' }, icon: '📊', color: '#fbbf24' },
 ]
 
+const content = {
+    en: {
+        tag: '🌍 Malnutrition Care Initiative',
+        title1: 'AI-Powered',
+        title2: 'Malnutrition',
+        title3: 'Detection',
+        sub: 'Empowering NGOs with intelligent child nutrition assessment tools to fight malnutrition — powered by MobileNetV2 deep learning.',
+        startBtn: '🔬 Start Screening',
+        learnBtn: '💡 Learn More',
+        modelLabel: 'Interactive 3D — Drag to Rotate',
+        howWorks: 'How It Works',
+        accurateResults: 'Accurate Results',
+        step1: 'Upload Photo',
+        step1Desc: 'Take or upload a child photograph for AI visual analysis.',
+        step2: 'Enter Measurements',
+        step2Desc: 'Provide height, weight, and age for BMI calculation.',
+        step3: 'Get Report',
+        step3Desc: 'Receive instant AI assessment with downloadable PDF report.',
+    },
+    hi: {
+        tag: '🌍 कुपोषण देखभाल पहल',
+        title1: 'कृत्रिम बुद्धिमत्ता',
+        title2: 'कुपोषण',
+        title3: 'पहचान',
+        sub: 'NGOs को बाल पोषण आकलन उपकरण प्रदान करना जो कुपोषण से लड़ने में मदद करता है — MobileNetV2 गहन शिक्षा द्वारा संचालित।',
+        startBtn: '🔬 स्क्रीनिंग शुरू करें',
+        learnBtn: '💡 और जानें',
+        modelLabel: 'इंटरैक्टिव 3D — खींचकर घुमाएं',
+        howWorks: 'यह कैसे काम करता है',
+        accurateResults: 'सटीक परिणाम',
+        step1: 'फोटो अपलोड करें',
+        step1Desc: 'बाल की तस्वीर लें या अपलोड करें AI दृश्य विश्लेषण के लिए।',
+        step2: 'माप दर्ज करें',
+        step2Desc: 'BMI गणना के लिए ऊंचाई, वजन और आयु प्रदान करें।',
+        step3: 'रिपोर्ट प्राप्त करें',
+        step3Desc: 'तत्काल AI मूल्यांकन प्राप्त करें डाउनलोड योग्य PDF रिपोर्ट के साथ।',
+    },
+    mr: {
+        tag: '🌍 कुपोषण देखभाल योजना',
+        title1: 'कृत्रिम',
+        title2: 'कुपोषण',
+        title3: 'शोध',
+        sub: 'NGO यांना बाल पोषण मूल्यांकन साधने प्रदान करा जे कुपोषणाशी लढते — MobileNetV2 गहन शिक्षण द्वारे.',
+        startBtn: '🔬 स्क्रिनिंग सुरू करा',
+        learnBtn: '💡 अधिक जाणून घ्या',
+        modelLabel: 'परस्पर 3D — ड्रॅग करून फिरवा',
+        howWorks: 'हे कसे कार्य करते',
+        accurateResults: 'अचूक परिणाम',
+        step1: 'फोटो अपलोड करा',
+        step1Desc: 'बाल फोटोग्राफ घ्या किंवा अपलोड करा AI व्हिजुअल विश्लेषणासाठी.',
+        step2: 'मोजमाप प्रविष्ट करा',
+        step2Desc: 'BMI गणनेसाठी उंची, वजन आणि वय प्रदान करा.',
+        step3: 'अहवाल मिळवा',
+        step3Desc: 'तत्काळ AI मूल्यांकन मिळवा डाउनलोड करण्यायोग्य PDF अहवालासह.',
+    },
+}
+
 export default function Home() {
+    const { language } = useLanguage()
+    const t = content[language] || content.en
+    const statsData = staticStatsData.map(s => ({ ...s, label: s.label[language] || s.label.en }))
     return (
         <motion.div
             key="home"
@@ -42,26 +103,25 @@ export default function Home() {
                         animate="show"
                     >
                         <motion.div variants={fadeUp}>
-                            <span className="section-tag">🌍 Malnutrition Care Initiative</span>
+                            <span className="section-tag">{t.tag}</span>
                         </motion.div>
 
                         <motion.h1 variants={fadeUp} className="hero-title">
-                            AI-Powered<br />
-                            <span className="gradient-text">Malnutrition</span><br />
-                            Detection
+                            {t.title1}<br />
+                            <span className="gradient-text">{t.title2}</span><br />
+                            {t.title3}
                         </motion.h1>
 
                         <motion.p variants={fadeUp} className="hero-sub">
-                            Empowering NGOs with intelligent child nutrition assessment tools
-                            to fight malnutrition — powered by MobileNetV2 deep learning.
+                            {t.sub}
                         </motion.p>
 
                         <motion.div variants={fadeUp} style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                             <Link to="/screening" className="btn-primary" style={{ textDecoration: 'none', display: 'inline-block' }}>
-                                🔬 Start Screening
+                                {t.startBtn}
                             </Link>
                             <Link to="/awareness" className="btn-secondary" style={{ textDecoration: 'none', display: 'inline-block' }}>
-                                💡 Learn More
+                                {t.learnBtn}
                             </Link>
                         </motion.div>
 
@@ -79,7 +139,7 @@ export default function Home() {
                         <HumanModel3D status={null} />
                         <div className="model-label">
                             <span className="pulse-dot" />
-                            Interactive 3D — Drag to Rotate
+                            {t.modelLabel}
                         </div>
                     </motion.div>
                 </div>
@@ -119,17 +179,17 @@ export default function Home() {
                     transition={{ duration: 0.6 }}
                     style={{ textAlign: 'center', marginBottom: 40 }}
                 >
-                    <span className="section-tag">How It Works</span>
+                    <span className="section-tag">{t.howWorks}</span>
                     <h2 style={{ fontSize: '2rem', fontWeight: 700, marginTop: 12 }}>
-                        Three Steps to <span className="gradient-text">Accurate Results</span>
+                        Three Steps to <span className="gradient-text">{t.accurateResults}</span>
                     </h2>
                 </motion.div>
 
                 <div className="steps-grid">
                     {[
-                        { step: '01', icon: '📷', title: 'Upload Photo', desc: 'Take or upload a child photograph for AI visual analysis.' },
-                        { step: '02', icon: '📏', title: 'Enter Measurements', desc: 'Provide height, weight, and age for BMI calculation.' },
-                        { step: '03', icon: '📋', title: 'Get Report', desc: 'Receive instant AI assessment with downloadable PDF report.' },
+                        { step: '01', icon: '📷', title: t.step1, desc: t.step1Desc },
+                        { step: '02', icon: '📏', title: t.step2, desc: t.step2Desc },
+                        { step: '03', icon: '📋', title: t.step3, desc: t.step3Desc },
                     ].map((s, i) => (
                         <motion.div
                             key={i}

@@ -1,20 +1,70 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
+import { useLanguage } from '../context/LanguageContext'
 
 const API = 'http://localhost:8000'
 
-const STARTER_MSG = {
-    role: 'ai',
-    text: "Hello! 👋 I'm your AI Medical Expert, specializing in child nutrition and malnutrition. Ask me anything about:\n\n• Malnutrition types & symptoms\n• Nutrition advice for children\n• BMI interpretation\n• Prevention strategies\n• When to seek medical help",
+const starterMessages = {
+  en: "Hello! 👋 I'm your AI Medical Expert, specializing in child nutrition and malnutrition. Ask me anything about:\n\n• Malnutrition types & symptoms\n• Nutrition advice for children\n• BMI interpretation\n• Prevention strategies\n• When to seek medical help",
+  hi: "नमस्ते! 👋 मैं आपका AI मेडिकल एक्सपर्ट हूँ, बाल पोषण और कुपोषण में विशेषज्ञ। मुझसे कुछ भी पूछें:\n\n• कुपोषण के प्रकार और लक्षण\n• बच्चों के लिए पोषण सलाह\n• BMI की व्याख्या\n• रोकथाम रणनीति\n• डॉक्टर से कब मिलें",
+  mr: "नमस्कार! 👋 मैं आपका AI वैद्यकीय तज्ञ असून, बाल पोषण आणि कुपोषणात विशेषज्ञ. मला कुठलेही प्रश्न विचारा:\n\n• कुपोषणाचे प्रकार आणि लक्षणे\n• मुलांसाठी पोषण सल्ला\n• BMI व्याख्या\n• प्रतिबंध कणनीति\n• डॉक्टरला कधी भेटा"
+}
+
+const content = {
+  en: {
+    title: 'AI Medical Expert',
+    online: 'Online',
+    specialist: 'Nutrition Specialist',
+    placeholder: 'Ask about nutrition, malnutrition...',
+    disclaimer: 'AI advice only — always consult a real doctor for diagnosis',
+    errorMsg: '⚠️ I\'m unable to reach the AI service right now. Please make sure the backend is running and your GEMINI_API_KEY is configured.',
+  },
+  hi: {
+    title: 'AI मेडिकल एक्सपर्ट',
+    online: 'ऑनलाइन',
+    specialist: 'पोषण विशेषज्ञ',
+    placeholder: 'पोषण, कुपोषण के बारे में पूछें...',
+    disclaimer: 'केवल AI सलाह — निदान के लिए सदैव एक वास्तविक डॉक्टर से परामर्श लें',
+    errorMsg: '⚠️ मैं इस समय AI सेवा तक नहीं पहुंच सकता। कृपया सुनिश्चित करें कि बैकेंड चल रहा है और आपकी GEMINI_API_KEY कॉन्फ़िगर की गई है।',
+  },
+  mr: {
+    title: 'AI वैद्यकीय तज्ञ',
+    online: 'ऑनलाइन',
+    specialist: 'पोषण तज्ञ',
+    placeholder: 'पोषण, कुपोषणबद्दल विचारा...',
+    disclaimer: 'केवल AI सल्ला — निदानासाठी नेहमी एक वास्तविक डॉक्टरांशी सल्ला घ्या',
+    errorMsg: '⚠️ मैं इस समय AI सेवा तक पोहोचू शकत नाही. कृपया सुनिश्चित करा की बॅकेंड चालू आहे आणि तुमची GEMINI_API_KEY कॉन्फिगर आहे.',
+  },
+}
+
+// ── Language auto-detection ──────────────────────────────────────────────────
+// Checks Unicode ranges: Devanagari block is U+0900–U+097F (covers Hindi & Marathi)
+// Marathi uses exclusively certain conjuncts/characters but both share the same code block,
+// so we rely on the app's navbar language setting as the tiebreaker when both are Devanagari.
+function detectInputLanguage(text, fallback) {
+    // Count Devanagari characters
+    const devanagariCount = (text.match(/[\u0900-\u097F]/g) || []).length
+    const totalLetters = (text.match(/[\p{L}]/gu) || []).length
+    if (totalLetters === 0) return fallback
+    // If >30 % of letters are Devanagari, honour the navbar language for hi/mr distinction
+    if (devanagariCount / totalLetters > 0.3) return fallback === 'mr' ? 'mr' : 'hi'
+    return 'en'
 }
 
 export default function ChatBot() {
+    const { language } = useLanguage()
+    const t = content[language] || content.en
     const [open, setOpen] = useState(false)
-    const [messages, setMessages] = useState([STARTER_MSG])
+    const [messages, setMessages] = useState([{ role: 'ai', text: starterMessages[language] || starterMessages.en }])
     const [input, setInput] = useState('')
     const [loading, setLoading] = useState(false)
     const bottomRef = useRef(null)
+
+    // Update greeting when navbar language changes
+    useEffect(() => {
+        setMessages([{ role: 'ai', text: starterMessages[language] || starterMessages.en }])
+    }, [language])
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -26,13 +76,20 @@ export default function ChatBot() {
         setInput('')
         setMessages(m => [...m, { role: 'user', text }])
         setLoading(true)
+
+        // Detect language from what the user typed; fall back to navbar language
+        const effectiveLang = detectInputLanguage(text, language)
+
         try {
-            const res = await axios.post(`${API}/api/chat`, { message: text })
+            const res = await axios.post(`${API}/api/chat`, {
+                message: text,
+                language: effectiveLang,
+            })
             setMessages(m => [...m, { role: 'ai', text: res.data.reply }])
         } catch {
             setMessages(m => [...m, {
                 role: 'ai',
-                text: '⚠️ I\'m unable to reach the AI service right now. Please make sure the backend is running and your GEMINI_API_KEY is configured.',
+                text: t.errorMsg,
             }])
         } finally {
             setLoading(false)
@@ -50,7 +107,7 @@ export default function ChatBot() {
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.94 }}
                 animate={open ? { rotate: 45 } : { rotate: 0 }}
-                title="Chat with AI Medical Expert"
+                title={language === 'hi' ? 'AI मेडिकल विशेषज्ञ से बात करें' : language === 'mr' ? 'AI वैद्यकीय तज्ञाशी बोला' : 'Chat with AI Medical Expert'}
             >
                 {open ? '✕' : '💬'}
                 {!open && <span className="fab-badge">AI</span>}
@@ -70,10 +127,10 @@ export default function ChatBot() {
                         <div className="chat-header">
                             <div className="chat-avatar">🩺</div>
                             <div>
-                                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>AI Medical Expert</div>
+                                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{t.title}</div>
                                 <div style={{ fontSize: '0.72rem', color: 'var(--accent-green)', display: 'flex', alignItems: 'center', gap: 5 }}>
                                     <span style={{ width: 6, height: 6, background: 'var(--accent-green)', borderRadius: '50%', display: 'inline-block' }} />
-                                    Online · Nutrition Specialist
+                                    {t.online} · {t.specialist}
                                 </div>
                             </div>
                             <button className="chat-close" onClick={() => setOpen(false)}>✕</button>
@@ -116,7 +173,7 @@ export default function ChatBot() {
                                 value={input}
                                 onChange={e => setInput(e.target.value)}
                                 onKeyDown={handleKey}
-                                placeholder="Ask about nutrition, malnutrition..."
+                                placeholder={t.placeholder}
                                 rows={1}
                                 disabled={loading}
                             />
@@ -131,7 +188,7 @@ export default function ChatBot() {
                             </motion.button>
                         </div>
                         <div style={{ padding: '6px 16px 10px', fontSize: '0.68rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-                            AI advice only — always consult a real doctor for diagnosis
+                            {t.disclaimer}
                         </div>
                     </motion.div>
                 )}

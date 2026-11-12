@@ -2,11 +2,119 @@ import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useDropzone } from 'react-dropzone'
 import axios from 'axios'
+import { useLanguage } from '../context/LanguageContext'
 import HumanModel3D from '../components/HumanModel3D'
 
 const API = 'http://localhost:8000'
 
+const content = {
+    en: {
+        tag: '🔬 AI Assessment',
+        title: 'New Child',
+        titleAccent: 'Screening',
+        sub: 'Upload a photo and enter measurements for AI-assisted nutrition analysis',
+        infoTitle: 'Child Information',
+        childName: 'Child Name',
+        childNamePlaceholder: 'Enter full name',
+        age: 'Age (years)',
+        agePlaceholder: 'e.g. 5',
+        height: 'Height (cm)',
+        heightPlaceholder: 'e.g. 95',
+        weight: 'Weight (kg)',
+        weightPlaceholder: 'e.g. 12.5',
+        photo: 'Child Photo',
+        dropPlaceholder: 'Drop photo here',
+        dropActive: 'Drop here!',
+        dropHint: 'or click to browse',
+        photoSelected: '✓ Photo selected — click to change',
+        photoError: 'Please upload a child photo.',
+        analyzeBtn: '🔬 Analyze Now',
+        analyzing: 'Analyzing with AI...',
+        model3DText: '3D model will update based on assessment result',
+        analyzing3D: 'AI is analyzing...',
+        processing: 'Processing image with MobileNetV2',
+        nameLabel: '👤 Name',
+        ageLabel: '🎂 Age',
+        bmiLabel: '📊 BMI',
+        confidenceLabel: '🤖 AI Confidence',
+        yearsLabel: 'years',
+        confidenceTitle: 'AI Confidence',
+        aiNote: '⚠️ AI-based prediction — not a medical diagnosis. Please consult a healthcare professional.',
+        downloadBtn: '📄 Download PDF Report',
+    },
+    hi: {
+        tag: '🔬 AI मूल्यांकन',
+        title: 'नया बाल',
+        titleAccent: 'स्क्रीनिंग',
+        sub: 'फोटो अपलोड करें और AI-सहायक पोषण विश्लेषण के लिए माप दर्ज करें',
+        infoTitle: 'बाल जानकारी',
+        childName: 'बाल का नाम',
+        childNamePlaceholder: 'पूरा नाम दर्ज करें',
+        age: 'आयु (वर्ष)',
+        agePlaceholder: 'उदाहरण के लिए 5',
+        height: 'ऊंचाई (सेमी)',
+        heightPlaceholder: 'उदाहरण के लिए 95',
+        weight: 'वजन (किग्रा)',
+        weightPlaceholder: 'उदाहरण के लिए 12.5',
+        photo: 'बाल फोटो',
+        dropPlaceholder: 'फोटो यहां खींचें',
+        dropActive: 'यहां खींचें!',
+        dropHint: 'या ब्राउज़ करने के लिए क्लिक करें',
+        photoSelected: '✓ फोटो चुनी गई — बदलने के लिए क्लिक करें',
+        photoError: 'कृपया बाल की फोटो अपलोड करें।',
+        analyzeBtn: '🔬 अभी विश्लेषण करें',
+        analyzing: 'AI के साथ विश्लेषण चल रहा है...',
+        model3DText: '3D मॉडल मूल्यांकन परिणाम के आधार पर अपडेट होगा',
+        analyzing3D: 'AI विश्लेषण कर रहा है...',
+        processing: 'MobileNetV2 के साथ छवि प्रसंस्करण',
+        nameLabel: '👤 नाम',
+        ageLabel: '🎂 आयु',
+        bmiLabel: '📊 BMI',
+        confidenceLabel: '🤖 AI आत्मविश्वास',
+        yearsLabel: 'वर्ष',
+        confidenceTitle: 'AI आत्मविश्वास',
+        aiNote: '⚠️ AI-आधारित भविष्यवाणी — चिकित्सकीय निदान नहीं। कृपया स्वास्थ्य सेवा पेशेवर से परामर्श लें।',
+        downloadBtn: '📄 PDF रिपोर्ट डाउनलोड करें',
+    },
+    mr: {
+        tag: '🔬 AI मूल्यांकन',
+        title: 'नवीन बाल',
+        titleAccent: 'स्क्रिनिंग',
+        sub: 'फोटो अपलोड करा आणि AI-सहाय्य पोषण विश्लेषणासाठी मोजमाप प्रविष्ट करा',
+        infoTitle: 'बाल माहिती',
+        childName: 'बालाचे नाव',
+        childNamePlaceholder: 'पूर्ण नाव प्रविष्ट करा',
+        age: 'वय (वर्षे)',
+        agePlaceholder: 'उदा. 5',
+        height: 'उंची (सेमी)',
+        heightPlaceholder: 'उदा. 95',
+        weight: 'वजन (किग्रा)',
+        weightPlaceholder: 'उदा. 12.5',
+        photo: 'बाल फोटो',
+        dropPlaceholder: 'फोटो येथे ड्रॅग करा',
+        dropActive: 'येथे ड्रॅग करा!',
+        dropHint: 'किंवा ब्राउज करण्यासाठी क्लिक करा',
+        photoSelected: '✓ फोटो निवडला — बदलण्यासाठी क्लिक करा',
+        photoError: 'कृपया बालाचा फोटो अपलोड करा.',
+        analyzeBtn: '🔬 आता विश्लेषण करा',
+        analyzing: 'AI सह विश्लेषण चल रहे...',
+        model3DText: '3D मॉडल मूल्यांकन परिणामाच्या आधारावर अपडेट होईल',
+        analyzing3D: 'AI विश्लेषण करत आहे...',
+        processing: 'MobileNetV2 सह प्रतिमा प्रक्रिया',
+        nameLabel: '👤 नाव',
+        ageLabel: '🎂 वय',
+        bmiLabel: '📊 BMI',
+        confidenceLabel: '🤖 AI आत्मविश्वास',
+        yearsLabel: 'वर्षे',
+        confidenceTitle: 'AI आत्मविश्वास',
+        aiNote: '⚠️ AI-आधारित भविष्यवाणी — वैद्यकीय निदान नाही. कृपया स्वास्थ्य सेवा व्यावसायिकाशी सल्ला घ्या.',
+        downloadBtn: '📄 PDF अहवाल डाउनलोड करा',
+    },
+}
+
 export default function Screening() {
+    const { language } = useLanguage()
+    const t = content[language] || content.en
     const [form, setForm] = useState({ child_name: '', age: '', height: '', weight: '' })
     const [imageFile, setImageFile] = useState(null)
     const [preview, setPreview] = useState(null)
@@ -32,7 +140,7 @@ export default function Screening() {
 
     const handleSubmit = async e => {
         e.preventDefault()
-        if (!imageFile) { setError('Please upload a child photo.'); return }
+        if (!imageFile) { setError(t.photoError); return }
         setError(null)
         setLoading(true)
         setResult(null)
@@ -42,10 +150,16 @@ export default function Screening() {
         data.append('child_image', imageFile)
 
         try {
-            const res = await axios.post(`${API}/api/analyze`, data)
+            const res = await axios.post(`${API}/api/analyze`, data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            })
             setResult(res.data)
         } catch (err) {
-            setError(err?.response?.data?.detail || 'An error occurred during analysis.')
+            console.error('Analysis Error:', err)
+            const errorMsg = err?.response?.data?.detail || err?.message || 'An error occurred during analysis. Make sure backend is running on http://localhost:8000'
+            setError(errorMsg)
         } finally {
             setLoading(false)
         }
@@ -76,12 +190,12 @@ export default function Screening() {
         >
             {/* Header */}
             <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                <span className="section-tag">🔬 AI Assessment</span>
+                <span className="section-tag">{t.tag}</span>
                 <h1 style={{ fontFamily: 'Outfit', fontSize: '2.2rem', fontWeight: 800, margin: '12px 0 8px' }}>
-                    New Child <span className="gradient-text">Screening</span>
+                    {t.title} <span className="gradient-text">{t.titleAccent}</span>
                 </h1>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', marginBottom: 36 }}>
-                    Upload a photo and enter measurements for AI-assisted nutrition analysis
+                    {t.sub}
                 </p>
             </motion.div>
 
@@ -95,17 +209,17 @@ export default function Screening() {
                     transition={{ duration: 0.5, delay: 0.1 }}
                 >
                     <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 28, color: 'var(--accent-cyan)' }}>
-                        Child Information
+                        {t.infoTitle}
                     </h2>
 
                     <div className="form-2col">
                         {/* Left column */}
                         <div>
                             {[
-                                { name: 'child_name', label: 'Child Name', type: 'text', placeholder: 'Enter full name' },
-                                { name: 'age', label: 'Age (years)', type: 'number', placeholder: 'e.g. 5' },
-                                { name: 'height', label: 'Height (cm)', type: 'number', placeholder: 'e.g. 95' },
-                                { name: 'weight', label: 'Weight (kg)', type: 'number', placeholder: 'e.g. 12.5' },
+                                { name: 'child_name', label: t.childName, type: 'text', placeholder: t.childNamePlaceholder },
+                                { name: 'age', label: t.age, type: 'number', placeholder: t.agePlaceholder },
+                                { name: 'height', label: t.height, type: 'number', placeholder: t.heightPlaceholder },
+                                { name: 'weight', label: t.weight, type: 'number', placeholder: t.weightPlaceholder },
                             ].map(f => (
                                 <div className="form-group" key={f.name}>
                                     <label>{f.label}</label>
@@ -125,7 +239,7 @@ export default function Screening() {
                         {/* Right column — dropzone */}
                         <div>
                             <div className="form-group">
-                                <label>Child Photo</label>
+                                <label>{t.photo}</label>
                                 <div
                                     {...getRootProps()}
                                     className={`dropzone ${isDragActive ? 'drag-active' : ''} ${preview ? 'has-preview' : ''}`}
@@ -135,16 +249,16 @@ export default function Screening() {
                                         <div className="preview-wrap">
                                             <img src={preview} alt="Preview" className="img-preview" />
                                             <p style={{ marginTop: 10, fontSize: '0.78rem', color: 'var(--accent-green)' }}>
-                                                ✓ Photo selected — click to change
+                                                {t.photoSelected}
                                             </p>
                                         </div>
                                     ) : (
                                         <div className="dropzone-inner">
                                             <span style={{ fontSize: '3rem' }}>📸</span>
                                             <p style={{ fontWeight: 600, margin: '12px 0 6px' }}>
-                                                {isDragActive ? 'Drop here!' : 'Drop photo here'}
+                                                {isDragActive ? t.dropActive : t.dropPlaceholder}
                                             </p>
-                                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>or click to browse</p>
+                                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t.dropHint}</p>
                                         </div>
                                     )}
                                 </div>
@@ -173,9 +287,9 @@ export default function Screening() {
                         {loading ? (
                             <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
                                 <span className="spinner" />
-                                Analyzing with AI...
+                                {t.analyzing}
                             </span>
-                        ) : '🔬 Analyze Now'}
+                        ) : t.analyzeBtn}
                     </motion.button>
                 </motion.form>
 
@@ -194,7 +308,7 @@ export default function Screening() {
                                     <HumanModel3D status={null} />
                                 </div>
                                 <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', paddingBottom: 20 }}>
-                                    3D model will update based on assessment result
+                                    {t.model3DText}
                                 </p>
                             </motion.div>
                         )}
@@ -215,8 +329,8 @@ export default function Screening() {
                                     <span style={{ fontSize: '3rem' }}>🧠</span>
                                 </div>
                                 <div style={{ textAlign: 'center' }}>
-                                    <p style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 8 }}>AI is analyzing...</p>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Processing image with MobileNetV2</p>
+                                    <p style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 8 }}>{t.analyzing3D}</p>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t.processing}</p>
                                 </div>
                             </motion.div>
                         )}
@@ -255,17 +369,17 @@ export default function Screening() {
                                         <img src={`http://localhost:8000${result.image_path}`} alt="Child" className="result-photo" />
                                     )}
                                     <div className="result-details">
-                                        <div className="info-row"><span>👤 Name</span><strong>{result.name}</strong></div>
-                                        <div className="info-row"><span>🎂 Age</span><strong>{result.age} years</strong></div>
-                                        <div className="info-row"><span>📊 BMI</span><strong style={{ color: statusColors[result.final_status] }}>{result.bmi}</strong></div>
-                                        <div className="info-row"><span>🤖 AI Confidence</span><strong style={{ color: statusColors[result.final_status] }}>{result.confidence}%</strong></div>
+                                        <div className="info-row"><span>{t.nameLabel}</span><strong>{result.name}</strong></div>
+                                        <div className="info-row"><span>{t.ageLabel}</span><strong>{result.age} {t.yearsLabel}</strong></div>
+                                        <div className="info-row"><span>{t.bmiLabel}</span><strong style={{ color: statusColors[result.final_status] }}>{result.bmi}</strong></div>
+                                        <div className="info-row"><span>{t.confidenceLabel}</span><strong style={{ color: statusColors[result.final_status] }}>{result.confidence}%</strong></div>
                                     </div>
                                 </div>
 
                                 {/* Confidence bar */}
                                 <div style={{ padding: '0 28px 12px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                                        <span>AI Confidence</span><span>{result.confidence}%</span>
+                                        <span>{t.confidenceTitle}</span><span>{result.confidence}%</span>
                                     </div>
                                     <div className="conf-track">
                                         <motion.div
@@ -279,7 +393,7 @@ export default function Screening() {
                                 </div>
 
                                 <div style={{ padding: '0 28px 28px' }}>
-                                    <p className="ai-note">⚠️ AI-based prediction — not a medical diagnosis. Please consult a healthcare professional.</p>
+                                    <p className="ai-note">{t.aiNote}</p>
                                     <motion.button
                                         onClick={handleDownloadPDF}
                                         className="btn-primary"
@@ -287,7 +401,7 @@ export default function Screening() {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                     >
-                                        📄 Download PDF Report
+                                        {t.downloadBtn}
                                     </motion.button>
                                 </div>
                             </motion.div>

@@ -1,6 +1,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
-:root {
+/* Light Theme - Default */
+:root, [data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f7fa;
+  --bg-tertiary: #e9ecef;
+  --bg-card: #ffffff;
+  --bg-glass: rgba(245, 247, 250, 0.8);
+  --accent-green: #00f5a0;
+  --accent-cyan: #00c3e3;
+  --accent-purple: #7c3aed;
+  --accent-yellow: #fbbf24;
+  --accent-red: #ef4444;
+  --accent-orange: #f97316;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --border: #d1d5db;
+  --border-hover: rgba(0, 245, 160, 0.3);
+  --shadow-glow: 0 0 30px rgba(0, 245, 160, 0.12);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --sidebar-bg: linear-gradient(180deg, #f8f9fa 0%, #eff1f3 100%);
+  --nav-hover-bg: rgba(0, 195, 227, 0.08);
+  --input-bg: #f0f0f0;
+  --input-border: #d1d5db;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
   --bg-primary: #050914;
   --bg-secondary: #0a1628;
   --bg-card: #0d1f3c;
@@ -22,6 +53,10 @@
   --radius-md: 16px;
   --radius-lg: 24px;
   --radius-xl: 32px;
+  --sidebar-bg: linear-gradient(180deg, #060e20 0%, #0a1628 100%);
+  --nav-hover-bg: rgba(0, 195, 227, 0.08);
+  --input-bg: rgba(255,255,255,0.04);
+  --input-border: rgba(0, 195, 227, 0.15);
 }
 
 * {
@@ -32,6 +67,9 @@
 
 html {
   scroll-behavior: smooth;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {
@@ -40,10 +78,14 @@ body {
   color: var(--text-primary);
   overflow-x: hidden;
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
   min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ── Scrollbar ─────────────────────────────────────── */
@@ -66,6 +108,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
+  transition: all 0.3s ease;
 }
 
 .btn-primary {
@@ -112,12 +155,17 @@ body {
 .page-layout {
   display: flex;
   min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .main-area {
   flex: 1;
   margin-left: 260px;
   transition: margin 0.3s;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 @media (max-width: 768px) {
@@ -161,8 +209,8 @@ body {
 }
 
 .form-group input {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   padding: 14px 18px;
@@ -175,7 +223,7 @@ body {
 .form-group input:focus {
   border-color: var(--accent-cyan);
   box-shadow: 0 0 0 3px rgba(0, 195, 227, 0.12);
-  background: rgba(0, 195, 227, 0.05);
+  background: var(--bg-primary);
 }
 
 /* ── Animations ─────────────────────────────────────── */
@@ -195,3 +243,33 @@ body {
 }
 
 .float-anim { animation: float 4s ease-in-out infinite; }
+
+/* ── Common Elements ────────────────────────────────── */
+button, input, textarea, select {
+  background: var(--input-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--input-border);
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+button:hover, input:hover, select:hover {
+  border-color: var(--accent-cyan);
+}
+
+input:focus, textarea:focus, select:focus {
+  background: var(--bg-primary);
+  border-color: var(--accent-cyan);
+  outline: none;
+}
+
+a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--accent-green);
+}
+
